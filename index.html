@@ -351,10 +351,10 @@ let view='drill';
 const VIEWS=['drill','chart','count','poker','plan','cards'];
 function route(){view=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):'drill';
   for(const v of VIEWS)$('v-'+v).hidden=v!==view;
-  if(view==='plan')renderPlan();if(view==='cards')renderSrs();
   if(GAMEOF[view])st.game=GAMEOF[view];const g=st.game==='pk'?'pk':'bj';(st.lv||(st.lv={}))[g]=view;
   $('gname').textContent=GN[g];document.querySelectorAll('#gmenu button').forEach(b=>b.setAttribute('aria-checked',b.dataset.game===g));
-  $('subnav').innerHTML=SUB[g].map(([v,l])=>`<a href="#${v}"${v===view?' aria-current="page"':''}>${l}</a>`).join('')}
+  $('subnav').innerHTML=SUB[g].map(([v,l])=>`<a href="#${v}"${v===view?' aria-current="page"':''}>${l}</a>`).join('');
+  try{fix();if(view==='plan')renderPlan();if(view==='cards')renderSrs()}catch(e){showErr(e.message)}}
 const SUB={bj:[['drill','Practice'],['cards','Memory'],['count','Count'],['chart','Odds'],['plan','Plan']],pk:[['poker','Practice'],['plan','Plan']]},GN={bj:'Blackjack',pk:'Poker'},GAMEOF={drill:'bj',cards:'bj',count:'bj',chart:'bj',poker:'pk'};
 function menu(open){$('gmenu').hidden=!open;$('gbtn').setAttribute('aria-expanded',open);if(open)$('gmenu').querySelector('[aria-checked=true]')?.focus()}
 $('gbtn').addEventListener('click',e=>{e.stopPropagation();menu($('gmenu').hidden)});
@@ -541,7 +541,7 @@ function stageStat(g){const a=(st.recent[g.id]||[]).slice(-g.need),n=a.length,ok
 function curStage(tr){for(const g of STAGES.filter(x=>x.tr===tr)){if(st.plan.done.includes(g.id))continue;if(stageStat(g).pass){st.plan.done.push(g.id);save();continue}return g}return null}
 function weakest(){let w=null;for(const[k,[a,b]]of Object.entries(st.hs))if(b>=3&&a<b&&(!w||a/b<w.p))w={k,p:a/b,b};return w}
 function weakSpot(){let w=null;for(const[k,[a,b]]of Object.entries(st.ps))if(b>=3&&a<b&&(!w||a/b<w.p))w={k,p:a/b,b};return w}
-function renderPlan(){
+function renderPlan(){fix();
   const tr=st.game==='pk'?'pk':'bj',G=GOAL[tr],unit=tr==='bj'?'hands':'spots';
   const t=st.days[today()]||{bj:0,pk:0},done=t[tr]||0,pctDay=Math.min(100,Math.round(done/G*100));
   const met=d=>d&&(d[tr]||0)>=G;let streak=0;for(let i=met(st.days[today()])?0:1;i<60&&met(st.days[dayKey(i)]);i++)streak++;
@@ -604,7 +604,7 @@ const nowM=()=>Math.floor(Date.now()/60000);
 function dayStart(off){const d=new Date();if(d.getHours()<4)d.setDate(d.getDate()-1);d.setHours(4,0,0,0);d.setDate(d.getDate()+off);return Math.floor(d.getTime()/60000)}
 const srsDay=()=>{const d=new Date(Date.now()-4*3600e3);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const deckIds=()=>SRS_IDS.filter(id=>!(st.no10&&id.startsWith('pair|10|')));
-function srsRoll(){const S=st.srs,d=srsDay();if(S.day!==d){S.day=d;S.nt=0;S.rt=0}}
+function srsRoll(){fix();const S=st.srs,d=srsDay();if(S.day!==d){S.day=d;S.nt=0;S.rt=0}}
 function srsCounts(){srsRoll();const S=st.srs,now=nowM();let l=0,r=0,unseen=0;for(const id of deckIds()){const c=S.c[id];if(!c){unseen++;continue}if(c[0]<=now){if(c[3]>=0)l++;else r++}}return{n:Math.min(unseen,Math.max(0,S.np-S.nt)),l,r}}
 function srsPick(){srsRoll();const S=st.srs,now=nowM(),ids=deckIds();let L=[],R=[],N=null,soon=null;
   for(const id of ids){const c=S.c[id];if(!c){if(!N)N=id;continue}if(c[3]>=0){if(c[0]<=now)L.push(id);else if(c[0]<=now+20&&(!soon||c[0]<S.c[soon][0]))soon=id}else if(c[0]<=now)R.push(id)}
