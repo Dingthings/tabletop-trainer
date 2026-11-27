@@ -1,5 +1,5 @@
 // Tabletop Trainer offline support. Bump VERSION when you change files.
-const VERSION = 'tt-v1';
+const VERSION = 'tt-v2';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
