@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f5a39">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -212,8 +212,14 @@ details{margin-top:10px}summary{cursor:pointer;font-weight:600;min-height:32px}
 </details>
 </div>
 
+<div id="errbar" role="alert" hidden style="position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));z-index:50;background:#7a1c17;color:#fff;border-radius:12px;padding:12px 14px;font:600 14px/1.4 system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>
 <script>
 {
+const showErr=m=>{const b=document.getElementById('errbar');if(!b)return;b.hidden=false;b.textContent='Something went wrong: '+m+' (Tap to hide. A screenshot of this helps fix it.)';b.onclick=()=>{b.hidden=true}};
+addEventListener('error',e=>showErr(e.message||'unknown error'));
+addEventListener('unhandledrejection',e=>showErr(String(e.reason&&e.reason.message||e.reason)));
+/* Stop iOS double-tap zoom while keeping fast taps working */
+let lastTap=0;document.addEventListener('touchend',e=>{const t=e.target;if(t.closest&&t.closest('input,textarea,select'))return;const n=e.timeStamp;if(n-lastTap<350){e.preventDefault();const b=t.closest&&t.closest('button,a,summary,label');if(b)b.click()}lastTap=n},{passive:false});
 const $=id=>document.getElementById(id);
 const RANKS=['2','3','4','5','6','7','8','9','10','J','Q','K','A'],SUITS=['♠','♥','♦','♣'];
 const rnd=a=>a[Math.random()*a.length|0];
